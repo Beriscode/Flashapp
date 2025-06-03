@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4a49b7',
+                    }
+                }
+            }
+        }
+
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+</head>
+<body class="bg-white dark:bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6 text-center">Translation App</h1>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <!-- Language Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="sourceLanguage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Source Language</label>
+                    <select id="sourceLanguage" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="auto">Auto-detect</option>
+                        <option value="Amharic">Amharic</option>
+                        <option value="Afan Oromo">Afan Oromo</option>
+                        <option value="English">English</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Russian">Russian</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Hindi">Hindi</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="targetLanguage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Language</label>
+                    <select id="targetLanguage" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="English">English</option>
+                        <option value="Amharic">Amharic</option>
+                        <option value="Afan Oromo">Afan Oromo</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Russian">Russian</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Hindi">Hindi</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Text Input -->
+            <div class="mb-4">
+                <label for="sourceText" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Text to Translate</label>
+                <textarea id="sourceText" rows="5" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter text to translate..."></textarea>
+            </div>
+            
+            <!-- Bot Selection -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Translation Bot</label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <label class="inline-flex items-center cursor-pointer bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 flex-1">
+                        <input type="radio" name="bot" value="Claude-3.7-Sonnet" class="h-4 w-4 text-primary focus:ring-primary border-gray-300" checked>
+                        <span class="ml-2 text-gray-900 dark:text-white">Claude-3.7-Sonnet</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 flex-1">
+                        <input type="radio" name="bot" value="Gemini-2.0-Pro" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                        <span class="ml-2 text-gray-900 dark:text-white">Gemini-2.0-Pro</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Translate Button -->
+            <button id="translateBtn" class="w-full bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mb-4">
+                Translate
+            </button>
+            
+            <!-- Result -->
+            <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Translation</h2>
+                    <button id="copyBtn" class="text-primary hover:text-primary-dark focus:outline-none hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="loadingState" class="hidden">
+                    <div class="flex items-center justify-center p-4">
+                        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                        <span class="ml-2 text-gray-600 dark:text-gray-400">Translating...</span>
+                    </div>
+                </div>
+                <div id="resultContainer" class="bg-gray-50 dark:bg-gray-700 rounded-md p-4 min-h-[100px] text-gray-900 dark:text-white">
+                    <p id="translationResult" class="whitespace-pre-wrap"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const translateBtn = document.getElementById('translateBtn');
+            const sourceText = document.getElementById('sourceText');
+            const sourceLanguage = document.getElementById('sourceLanguage');
+            const targetLanguage = document.getElementById('targetLanguage');
+            const resultContainer = document.getElementById('resultContainer');
+            const translationResult = document.getElementById('translationResult');
+            const loadingState = document.getElementById('loadingState');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            // Register handler for translation responses
+            window.Poe.registerHandler("translation-handler", (result, context) => {
+                const msg = result.responses[0];
+                
+                if (msg.status === "error") {
+                    translationResult.textContent = "Error: " + msg.statusText;
+                    loadingState.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                } else if (msg.status === "incomplete") {
+                    // Update with partial content while streaming
+                    translationResult.textContent = msg.content;
+                    loadingState.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                } else if (msg.status === "complete") {
+                    // Update with final content
+                    translationResult.textContent = msg.content;
+                    loadingState.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                    copyBtn.classList.remove('hidden');
+                }
+            });
+            
+            // Handle translation button click
+            translateBtn.addEventListener('click', async () => {
+                const text = sourceText.value.trim();
+                if (!text) {
+                    alert('Please enter text to translate');
+                    return;
+                }
+                
+                const source = sourceLanguage.value;
+                const target = targetLanguage.value;
+                
+                if (source === target && source !== 'auto') {
+                    alert('Source and target languages cannot be the same');
+                    return;
+                }
+                
+                // Get selected bot
+                const selectedBot = document.querySelector('input[name="bot"]:checked').value;
+                
+                // Clear previous result and show loading
+                translationResult.textContent = '';
+                resultContainer.classList.add('hidden');
+                loadingState.classList.remove('hidden');
+                copyBtn.classList.add('hidden');
+                
+                // Create translation prompt
+                const promptIntro = source === 'auto' 
+                    ? `Translate the following text to ${target}:`
+                    : `Translate the following text from ${source} to ${target}:`;
+                
+                const prompt = `@${selectedBot} ${promptIntro}\n\n${text}\n\nProvide ONLY the translated text with no explanations, headers, or additional formatting.`;
+                
+                try {
+                    await window.Poe.sendUserMessage(prompt, {
+                        handler: "translation-handler",
+                        stream: true,
+                        openChat: false
+                    });
+                } catch (err) {
+                    translationResult.textContent = "Error: " + err.message;
+                    loadingState.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                }
+            });
+            
+            // Handle copy button
+            copyBtn.addEventListener('click', () => {
+                try {
+                    navigator.clipboard.writeText(translationResult.textContent);
+                    
+                    // Show copy feedback
+                    const originalHTML = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    `;
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHTML;
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4a49b7',
+                    }
+                }
+            }
+        }
+
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+</head>
+<body class="bg-white dark:bg-gray-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6 text-center">Translation App</h1>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <!-- Language Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="sourceLanguage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Source Language</label>
+                    <select id="sourceLanguage" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="auto">Auto-detect</option>
+                        <option value="Amharic">Amharic</option>
+                        <option value="Afan Oromo">Afan Oromo</option>
+                        <option value="English">English</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Russian">Russian</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Hindi">Hindi</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="targetLanguage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Language</label>
+                    <select id="targetLanguage" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 text-base focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="English">English</option>
+                        <option value="Amharic">Amharic</option>
+                        <option value="Afan Oromo">Afan Oromo</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Russian">Russian</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Hindi">Hindi</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Text Input -->
+            <div class="mb-4">
+                <label for="sourceText" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Text to Translate</label>
+                <textarea id="sourceText" rows="5" class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 text-base focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter text to translate..."></textarea>
+            </div>
+            
+            <!-- Bot Selection -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Translation Bot</label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <label class="inline-flex items-center cursor-pointer bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 flex-1">
+                        <input type="radio" name="bot" value="Claude-3.7-Sonnet" class="h-4 w-4 text-primary focus:ring-primary border-gray-300" checked>
+                        <span class="ml-2 text-gray-900 dark:text-white">Claude-3.7-Sonnet</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 flex-1">
+                        <input type="radio" name="bot" value="Gemini-2.0-Pro" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                        <span class="ml-2 text-gray-900 dark:text-white">Gemini-2.0-Pro</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Translate Button -->
+            <button id="translateBtn" class="w-full bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mb-4">
+                Translate
+            </button>
+            
+            <!-- Result -->
+            <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Translation</h2>
+                    <button id="copyBtn" class="text-primary hover:text-primary-dark focus:outline-none hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="loadingState" class="hidden">
+                    <div class="flex items-center justify-center p-4">
+                        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                        <span class="ml-2 text-gray-600 dark:text-gray-400">Translating...</span>
+                    </div>
+                </div>
+                <div id="resultContainer" class="bg-gray-50 dark:bg-gray-700 rounded-md p-4 min-h-[100px] text-gray-900 dark:text-white">
+                    <p id="translationResult" class="whitespace-pre-wrap"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const translateBtn = document.getElementById('translateBtn');
+            const sourceText = document.getElementById('sourceText');
+            const sourceLanguage = document.getElementById('sourceLanguage');
+            const targetLanguage = document.getElementById('targetLanguage');
+            const resultContainer = document.getElementById('resultContainer');
+            const translationResult = document.getElementById('translationResult');
+            const loadingState = document.getElementById('loadingState');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            // Register handler for translation responses
+            window.Poe.registerHandler("translation-handler", (result, context) => {
+                const msg = result.responses[0];
+                
+                if (msg.status === "error") {
+                    translationResult.textContent = "Error: " + msg.statusText;
+                    loadingState.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                } else if (msg.status === "incomplete") {
+                    // Update with partial content while streaming
+                    translationResult.textContent = msg.content;
+                    loadingState.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                } else if (msg.status === "complete") {
+                    // Update with final content
+                    translationResult.textContent = msg.content;
+                    loadingState.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                    copyBtn.classList.remove('hidden');
+                }
+            });
+            
+            // Handle translation button click
+            translateBtn.addEventListener('click', async () => {
+                const text = sourceText.value.trim();
+                if (!text) {
+                    alert('Please enter text to translate');
+                    return;
+                }
+                
+                const source = sourceLanguage.value;
+                const target = targetLanguage.value;
+                
+                if (source === target && source !== 'auto') {
+                    alert('Source and target languages cannot be the same');
+                    return;
+                }
+                
+                // Get selected bot
+                const selectedBot = document.querySelector('input[name="bot"]:checked').value;
+                
+                // Clear previous result and show loading
+                translationResult.textContent = '';
+                resultContainer.classList.add('hidden');
+                loadingState.classList.remove('hidden');
+                copyBtn.classList.add('hidden');
+                
+                // Create translation prompt
+                const promptIntro = source === 'auto' 
+                    ? `Translate the following text to ${target}:`
+                    : `Translate the following text from ${source} to ${target}:`;
+                
+                const prompt = `@${selectedBot} ${promptIntro}\n\n${text}\n\nProvide ONLY the translated text with no explanations, headers, or additional formatting.`;
+                
+                try {
+                    await window.Poe.sendUserMessage(prompt, {
+                        handler: "translation-handler",
+                        stream: true,
+                        openChat: false
+                    });
+                } catch (err) {
+                    translationResult.textContent = "Error: " + err.message;
+                    loadingState.classList.add('hidden');
+                    resultContainer.classList.remove('hidden');
+                }
+            });
+            
+            // Handle copy button
+            copyBtn.addEventListener('click', () => {
+                try {
+                    navigator.clipboard.writeText(translationResult.textContent);
+                    
+                    // Show copy feedback
+                    const originalHTML = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    `;
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHTML;
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
